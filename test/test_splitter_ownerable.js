@@ -4,7 +4,7 @@ contract('Splitter', function(accounts) {
     it('should have the owner address equal to the sender', function() {
         var contract;
         var originalOwner = accounts[0];
-        Splitter.deployed().then((instance) => {
+        return Splitter.deployed().then((instance) => {
             contract = instance;
             return contract.owner.call();
         }).then((owner) => {
@@ -16,19 +16,17 @@ contract('Splitter', function(accounts) {
         var contract;
         var originalOwner = accounts[0];
         var newOwner = accounts[1];
-        Splitter.deployed().then((instance) => {
+        return Splitter.deployed().then((instance) => {
             contract = instance;
-            contract.changeOwner(newOwner, {from: originalOwner});
-        }).then(() => {
-            assert.equal(contract.owner.call(), newOwner);
-            utils.assertEvent(contract, {
-                event: "LogChangeOwner",
-                logIndex: 0,
-                args: {
-                    sender: originalOwner,
-                    newOwner: newOwner
-                }
-            });
+            return contract.changeOwner(newOwner, {from: originalOwner});
+        }).then((events) => {
+            assert.equal(events.logs.length, 1);
+            assert.equal(events.logs[0].event, 'LogChangeOwner');
+            assert.equal(events.logs[0].args.sender, originalOwner);
+            assert.equal(events.logs[0].args.newOwner, newOwner);
+            return contract.owner.call();
+        }).then((owner) => {
+            assert.equal(owner, newOwner);
         });
     });
 });
