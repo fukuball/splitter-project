@@ -7,3 +7,33 @@ Create a smart contract named Splitter whereby:
 - whenever Alice sends ether to the contract for it to be split, half of it goes to Bob and the other half to Carol.
 - we can see the balances of Alice, Bob and Carol on the Web page.
 - Alice can use the Web page to split her ether.
+
+## Install
+
+```
+$ npm install -g truffle ganache-cli
+```
+
+## Compile
+
+```
+$ truffle compile
+```
+
+## Migrate
+
+```
+$ truffle migrate
+```
+
+## Play with migrated contrac
+
+```
+$ truffle console
+```
+
+## Test
+
+```
+$ truffle test
+```
