@@ -7,7 +7,7 @@ contract Splitter is Ownerable {
     mapping(address => uint256) balances;
     address[] public recipients;
 
-    event LogSplit(address sender, uint value);
+    event LogSplit(address sender, uint256 value);
     event LogAddRecipient(address sender, address recipient);
     event LogRemoveRecipient(address sender, address recipient);
     event LogWithdraw(address sender, address recipient, uint toWithdraw);
@@ -91,5 +91,9 @@ contract Splitter is Ownerable {
 
     function balanceOf(address recipient) public view returns(uint256) {
         return balances[recipient];
+    }
+
+    function getRecipients() public view returns(address[]) {
+        return recipients;
     }
 }
