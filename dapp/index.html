@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Splitter Project">
+    <meta name="author" content="Fukuball">
+    <link rel="icon" href="/favicon.ico?1">
+
+    <title>Splitter Project</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  </head>
+
+  <body class="bg-light">
+
+    <div class="container">
+      <div id="init-block" class="h2 text-center my-5">
+        Please Wait...
+      </div>
+      <div id="contract-address-input-block" class="row justify-content-center my-5 d-none">
+        <div class="col-8 col-lg-6">
+          <div class="h3">
+            Please input your Splitter contract address
+          </div>
+          <form class="form-inline mt-5">
+            <div class="form-group col-7 mb-2">
+              <input type="text" class="form-control w-100" id="contract-address-input" placeholder="0x3ce79e4149795d2514eccfcee5eba1fe27c89eb1" required>
+            </div>
+            <button id="contract-address-input-btn" type="button" class="btn btn-primary mb-2">Confirm</button>
+          </form>
+        </div>
+      </div>
+      <footer class="my-5 pt-5 text-muted text-center text-small">
+        <p class="mb-1">&copy; Fukuball</p>
+      </footer>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.min.js"
+      integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+      crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="/js/web3.js"></script>
+    <script>
+    window.SplitterDapp = {
+      splitterContractFactory: null,
+      splitterAddress: null,
+      splitterInstance: null,
+      start: function() {
+        var self = this;
+        $.ajax({
+          url: '/contracts/Splitter.json',
+          type: 'GET',
+          headers: {
+          },
+          data: {
+          },
+          dataType: 'json',
+          beforeSend: function(xhr) {
+          },
+          success: function(responseText) {
+            self.splitterContractFactory = web3.eth.contract(responseText.abi);
+            $('#init-block').addClass('d-none');
+            $('#contract-address-input-block').removeClass('d-none');
+          },
+          error: function(err) {
+            console.log(err);
+          }
+        });
+      },
+      getOwner: function() {
+        this.splitterInstance.owner.call(function(err, owner) {
+          if (err) {
+              console.error(err);
+          } else {
+              console.log(owner);
+          }
+      });
+      }
+    }
+
+    $(document).ready(function() {
+      if (typeof web3 !== 'undefined') {
+        // Don't lose an existing provider, like Mist or Metamask
+        web3 = new Web3(web3.currentProvider);
+      } else {
+        // set the provider you want from Web3.providers
+        web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+      }
+      SplitterDapp.start();
+
+      $(document.body).off('click', '#contract-address-input-btn');
+      $(document.body).on('click', '#contract-address-input-btn', function() {
+        SplitterDapp.splitterAddress = $('#contract-address-input').val();
+        SplitterDapp.splitterInstance = SplitterDapp.splitterContractFactory.at(SplitterDapp.splitterAddress);
+        console.log(SplitterDapp.splitterInstance);
+      });
+    });
+    </script>
+  </body>
+</html>

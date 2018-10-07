@@ -37,3 +37,23 @@ $ truffle console
 ```
 $ truffle test
 ```
+
+## Run Dapp
+
+On terminal 1
+
+```
+$ ganache-cli
+```
+
+On terminal 2
+
+```
+$ truffle migrate
+$ cd dapp
+$ ln -s ../build/contracts contracts
+$ cd ..
+$ php -S 0.0.0.0:8000 -t dapp/
+```
+
+Open browser to: http://localhost:8000/
