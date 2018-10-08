@@ -15,12 +15,12 @@ contract Ownerable {
     event LogChangeOwner(address sender, address newOwner);
 
     modifier onlyOwner {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "only owner");
         _;
     }
 
     modifier preventSameOwner(address newOwner) {
-        require(msg.sender != newOwner);
+        require(msg.sender != newOwner, "pervent same owner");
         _;
     }
 

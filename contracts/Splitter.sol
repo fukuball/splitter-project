@@ -18,7 +18,7 @@ contract Splitter is Ownerable {
 
     function split() onlyOwner payable public returns(bool isSuccess) {
         uint numberOfRecipients = recipients.length;
-        require(numberOfRecipients > 0);
+        require(numberOfRecipients > 0, "no recipients");
 
         uint256 remainder = msg.value % numberOfRecipients;
         uint256 splitValue = (msg.value - remainder) / numberOfRecipients;
@@ -36,7 +36,7 @@ contract Splitter is Ownerable {
 
     function addRecipient(address recipient) onlyOwner public returns(address[]) {
         (bool isExist, uint recipientIndex) = findRecipient(recipient);
-        require(isExist == false && recipientIndex == 0);
+        require(isExist == false && recipientIndex == 0, "can not find");
 
         recipients.push(recipient);
         balances[recipient] = 0;
@@ -48,7 +48,7 @@ contract Splitter is Ownerable {
 
     function removeRecipient(address recipient) onlyOwner public returns(address[]) {
         (bool isExist, uint recipientIndex) = findRecipient(recipient);
-        require(isExist == true);
+        require(isExist == true, "can find");
 
         if (balances[recipient] > 0) {
             withdraw(recipient);
@@ -64,7 +64,7 @@ contract Splitter is Ownerable {
 
     function withdraw(address recipient) public returns(bool isSuccess) {
         uint toWithdraw = balances[recipient];
-        require(toWithdraw > 0);
+        require(toWithdraw > 0, "no balance");
         balances[recipient] = 0;
         recipient.transfer(toWithdraw);
 

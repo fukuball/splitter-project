@@ -2,18 +2,24 @@ var Splitter = artifacts.require('Splitter');
 
 contract('Splitter', function(accounts) {
     let catchRevert = require("./exceptions.js").catchRevert;
+
     let alice = accounts[0];
     let bob = accounts[1];
     let carol = accounts[2];
+    var contract;
+
+    beforeEach(function() {
+      return Splitter.new().then(function(instance) {
+        contract = instance;
+      });
+    });
 
     it('should have the owner address equal to the sender', async function() {
-        let contract = await Splitter.deployed();
         let contractOwner = await contract.owner.call();
         assert.equal(contractOwner, alice);
     });
 
     it('should not split if there is no recipients', async function() {
-        let contract = await Splitter.deployed();
         await catchRevert(contract.split({
             from: alice,
             value: web3.toWei(1, "ether")
@@ -21,17 +27,14 @@ contract('Splitter', function(accounts) {
     });
 
     it('should not remove recipient if there is no recipients', async function() {
-        let contract = await Splitter.deployed();
         await catchRevert(contract.removeRecipient(bob, {from: alice}));
     });
 
     it('should not add recipient by other', async function() {
-        let contract = await Splitter.deployed();
         await catchRevert(contract.addRecipient(bob, {from: bob}));
     });
 
     it('should add recipient by owner', async function() {
-        let contract = await Splitter.deployed();
         let events = await contract.addRecipient(bob, {from: alice});
         assert.equal(events.logs.length, 1);
         assert.equal(events.logs[0].event, 'LogAddRecipient');
@@ -48,12 +51,10 @@ contract('Splitter', function(accounts) {
     });
 
     it('should not remove recipient by other', async function() {
-        let contract = await Splitter.deployed();
         await catchRevert(contract.removeRecipient(bob, {from: bob}));
     });
 
     it('should not split by other', async function() {
-        let contract = await Splitter.deployed();
         await catchRevert(contract.split({
             from: bob,
             value: web3.toWei(1, "ether")
@@ -61,7 +62,10 @@ contract('Splitter', function(accounts) {
     });
 
     it('should split by owner', async function() {
-        let contract = await Splitter.deployed();
+        // prepare
+        await contract.addRecipient(bob, {from: alice});
+        await contract.addRecipient(carol, {from: alice});
+
         let events = await contract.split({
             from: alice,
             value: web3.toWei(1, "ether")
@@ -96,7 +100,18 @@ contract('Splitter', function(accounts) {
     });
 
     it('should remove recipient by owner', async function() {
-        let contract = await Splitter.deployed();
+        // prepare
+        await contract.addRecipient(bob, {from: alice});
+        await contract.addRecipient(carol, {from: alice});
+        await contract.split({
+            from: alice,
+            value: web3.toWei(1, "ether")
+        });
+        await contract.split({
+            from: alice,
+            value: 3
+        });
+
         let previousBobEther = await web3.eth.getBalance(bob);
         let events = await contract.removeRecipient(bob, {from: alice});
         assert.equal(events.logs.length, 2);
@@ -114,7 +129,18 @@ contract('Splitter', function(accounts) {
     });
 
     it('should withdraw balance', async function() {
-        let contract = await Splitter.deployed();
+        // prepare
+        await contract.addRecipient(bob, {from: alice});
+        await contract.addRecipient(carol, {from: alice});
+        await contract.split({
+            from: alice,
+            value: web3.toWei(1, "ether")
+        });
+        await contract.split({
+            from: alice,
+            value: 3
+        });
+
         let previousCarolEther = await web3.eth.getBalance(carol);
         let events = await contract.withdraw(carol, {from: alice});
         assert.equal(events.logs.length, 1);
