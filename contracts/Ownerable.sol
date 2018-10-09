@@ -10,12 +10,12 @@ pragma solidity ^0.4.23;
  */
 contract Ownerable {
 
-    address public owner;
+    address private _owner;
 
-    event LogChangeOwner(address sender, address newOwner);
+    event LogChangeOwner(address indexed sender, address indexed newOwner);
 
     modifier onlyOwner {
-        require(msg.sender == owner, "only owner");
+        require(msg.sender == _owner, "only owner");
         _;
     }
 
@@ -25,11 +25,16 @@ contract Ownerable {
     }
 
     constructor() public {
-        owner = msg.sender;
+        _owner = msg.sender;
+    }
+
+    function owner() public view returns(address) {
+        return _owner;
     }
 
     function changeOwner(address newOwner) public onlyOwner preventSameOwner(newOwner) returns(bool isSuccess) {
-        owner = newOwner;
+        require(newOwner != address(0));
+        _owner = newOwner;
         emit LogChangeOwner(msg.sender, newOwner);
         return true;
     }
