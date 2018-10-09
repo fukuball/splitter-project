@@ -1,11 +1,11 @@
-var Splitter = artifacts.require('Splitter');
+const catchRevert = require("./exceptions.js").catchRevert;
+const Splitter = artifacts.require('Splitter');
 
 contract('Splitter', function(accounts) {
-    let catchRevert = require("./exceptions.js").catchRevert;
 
-    let alice = accounts[0];
-    let bob = accounts[1];
-    let carol = accounts[2];
+    const alice = accounts[0];
+    const bob = accounts[1];
+    const carol = accounts[2];
     var contract;
 
     beforeEach(function() {
