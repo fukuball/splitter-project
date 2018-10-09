@@ -13,7 +13,7 @@ contract('Ownerable', function(accounts) {
     });
 
     it('should have the owner address equal to the sender', async function() {
-        let contractOwner = await contract.owner({from: originalOwner});
+        const contractOwner = await contract.owner({from: originalOwner});
         assert.equal(contractOwner, originalOwner);
     });
 
@@ -28,12 +28,13 @@ contract('Ownerable', function(accounts) {
 
     it('should have the ability to change owner and get the event', async function() {
         const newOwner = accounts[1];
-        let events = await contract.changeOwner(newOwner, {from: originalOwner});
-        assert.equal(events.logs.length, 1);
-        assert.equal(events.logs[0].event, 'LogChangeOwner');
-        assert.equal(events.logs[0].args.sender, originalOwner);
-        assert.equal(events.logs[0].args.newOwner, newOwner);
-        let contractOwner = await contract.owner.call();
+        const txObj = await contract.changeOwner(newOwner, {from: originalOwner});
+        assert.equal(txObj.receipt.logs.length, 1);
+        assert.equal(txObj.logs.length, 1);
+        assert.equal(txObj.logs[0].event, 'LogChangeOwner');
+        assert.equal(txObj.logs[0].args.sender, originalOwner);
+        assert.equal(txObj.logs[0].args.newOwner, newOwner);
+        const contractOwner = await contract.owner({from: originalOwner});
         assert.equal(contractOwner, newOwner);
     });
 });

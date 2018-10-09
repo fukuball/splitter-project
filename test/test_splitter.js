@@ -15,7 +15,7 @@ contract('Splitter', function(accounts) {
     });
 
     it('should have the owner address equal to the sender', async function() {
-        let contractOwner = await contract.owner.call();
+        const contractOwner = await contract.owner({from: alice});
         assert.equal(contractOwner, alice);
     });
 
@@ -35,17 +35,19 @@ contract('Splitter', function(accounts) {
     });
 
     it('should add recipient by owner', async function() {
-        let events = await contract.addRecipient(bob, {from: alice});
-        assert.equal(events.logs.length, 1);
-        assert.equal(events.logs[0].event, 'LogAddRecipient');
-        assert.equal(events.logs[0].args.sender, alice);
-        assert.equal(events.logs[0].args.recipient, bob);
-        events = await contract.addRecipient(carol, {from: alice});
-        assert.equal(events.logs.length, 1);
-        assert.equal(events.logs[0].event, 'LogAddRecipient');
-        assert.equal(events.logs[0].args.sender, alice);
-        assert.equal(events.logs[0].args.recipient, carol);
-        let contractRecipients = await contract.getRecipients({from: alice});
+        const txObj1 = await contract.addRecipient(bob, {from: alice});
+        assert.equal(txObj1.receipt.logs.length, 1);
+        assert.equal(txObj1.logs.length, 1);
+        assert.equal(txObj1.logs[0].event, 'LogAddRecipient');
+        assert.equal(txObj1.logs[0].args.sender, alice);
+        assert.equal(txObj1.logs[0].args.recipient, bob);
+        const txObj2 = await contract.addRecipient(carol, {from: alice});
+        assert.equal(txObj2.receipt.logs.length, 1);
+        assert.equal(txObj2.logs.length, 1);
+        assert.equal(txObj2.logs[0].event, 'LogAddRecipient');
+        assert.equal(txObj2.logs[0].args.sender, alice);
+        assert.equal(txObj2.logs[0].args.recipient, carol);
+        const contractRecipients = await contract.getRecipients({from: alice});
         assert.equal(bob, contractRecipients[0]);
         assert.equal(carol, contractRecipients[1]);
     });
@@ -66,14 +68,15 @@ contract('Splitter', function(accounts) {
         await contract.addRecipient(bob, {from: alice});
         await contract.addRecipient(carol, {from: alice});
 
-        let events = await contract.split({
+        const txObj1 = await contract.split({
             from: alice,
             value: web3.toWei(1, "ether")
         });
-        assert.equal(events.logs.length, 1);
-        assert.equal(events.logs[0].event, 'LogSplit');
-        assert.equal(events.logs[0].args.sender, alice);
-        assert.equal(events.logs[0].args.value, web3.toWei(1, "ether"));
+        assert.equal(txObj1.receipt.logs.length, 1);
+        assert.equal(txObj1.logs.length, 1);
+        assert.equal(txObj1.logs[0].event, 'LogSplit');
+        assert.equal(txObj1.logs[0].args.sender, alice);
+        assert.equal(txObj1.logs[0].args.value, web3.toWei(1, "ether"));
         let contractEther = await web3.eth.getBalance(contract.address);
         assert.equal(contractEther, web3.toWei(1, "ether"));
         let splitValue = web3.toWei(1, "ether") / 2;
@@ -81,14 +84,15 @@ contract('Splitter', function(accounts) {
         let carolBlance = await contract.balanceOf(carol, {from: alice});
         assert.equal(bobBlance, splitValue);
         assert.equal(carolBlance, splitValue);
-        events = await contract.split({
+        const txObj2 = await contract.split({
             from: alice,
             value: 3
         });
-        assert.equal(events.logs.length, 1);
-        assert.equal(events.logs[0].event, 'LogSplit');
-        assert.equal(events.logs[0].args.sender, alice);
-        assert.equal(events.logs[0].args.value, 3);
+        assert.equal(txObj2.receipt.logs.length, 1);
+        assert.equal(txObj2.logs.length, 1);
+        assert.equal(txObj2.logs[0].event, 'LogSplit');
+        assert.equal(txObj2.logs[0].args.sender, alice);
+        assert.equal(txObj2.logs[0].args.value, 3);
         contractEther = await web3.eth.getBalance(contract.address);
         assert.equal(contractEther, web3.toWei(1, "ether")/1+3);
         aliceBlance = await contract.balanceOf(alice, {from: alice});
@@ -112,19 +116,20 @@ contract('Splitter', function(accounts) {
             value: 3
         });
 
-        let previousBobEther = await web3.eth.getBalance(bob);
-        let events = await contract.removeRecipient(bob, {from: alice});
-        assert.equal(events.logs.length, 2);
-        assert.equal(events.logs[0].event, 'LogWithdraw');
-        assert.equal(events.logs[0].args.sender, alice);
-        assert.equal(events.logs[0].args.recipient, bob);
-        assert.equal(events.logs[0].args.toWithdraw, web3.toWei(1, "ether")/2+1);
-        assert.equal(events.logs[1].event, 'LogRemoveRecipient');
-        assert.equal(events.logs[1].args.sender, alice);
-        assert.equal(events.logs[1].args.recipient, bob);
-        let contractRecipients = await contract.getRecipients({from: alice});
+        const previousBobEther = await web3.eth.getBalance(bob);
+        const txObj = await contract.removeRecipient(bob, {from: alice});
+        assert.equal(txObj.receipt.logs.length, 2);
+        assert.equal(txObj.logs.length, 2);
+        assert.equal(txObj.logs[0].event, 'LogWithdraw');
+        assert.equal(txObj.logs[0].args.sender, alice);
+        assert.equal(txObj.logs[0].args.recipient, bob);
+        assert.equal(txObj.logs[0].args.toWithdraw, web3.toWei(1, "ether")/2+1);
+        assert.equal(txObj.logs[1].event, 'LogRemoveRecipient');
+        assert.equal(txObj.logs[1].args.sender, alice);
+        assert.equal(txObj.logs[1].args.recipient, bob);
+        const contractRecipients = await contract.getRecipients({from: alice});
         assert.equal(carol, contractRecipients[0]);
-        currentBobEther = await web3.eth.getBalance(bob);
+        const currentBobEther = await web3.eth.getBalance(bob);
         assert.equal(currentBobEther-previousBobEther, web3.toWei(1, "ether")/2+1);
     });
 
@@ -141,14 +146,15 @@ contract('Splitter', function(accounts) {
             value: 3
         });
 
-        let previousCarolEther = await web3.eth.getBalance(carol);
-        let events = await contract.withdraw(carol, {from: alice});
-        assert.equal(events.logs.length, 1);
-        assert.equal(events.logs[0].event, 'LogWithdraw');
-        assert.equal(events.logs[0].args.sender, alice);
-        assert.equal(events.logs[0].args.recipient, carol);
-        assert.equal(events.logs[0].args.toWithdraw, web3.toWei(1, "ether")/2+1);
-        currentCarolEther = await web3.eth.getBalance(carol);
+        const previousCarolEther = await web3.eth.getBalance(carol);
+        const txObj = await contract.withdraw(carol, {from: alice});
+        assert.equal(txObj.receipt.logs.length, 1);
+        assert.equal(txObj.logs.length, 1);
+        assert.equal(txObj.logs[0].event, 'LogWithdraw');
+        assert.equal(txObj.logs[0].args.sender, alice);
+        assert.equal(txObj.logs[0].args.recipient, carol);
+        assert.equal(txObj.logs[0].args.toWithdraw, web3.toWei(1, "ether")/2+1);
+        const currentCarolEther = await web3.eth.getBalance(carol);
         assert.equal(currentCarolEther-previousCarolEther, web3.toWei(1, "ether")/2+1);
     });
 });

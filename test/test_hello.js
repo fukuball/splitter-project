@@ -13,7 +13,7 @@ contract('HelloWorld', function(accounts) {
     });
 
     it('should say hello', async function() {
-        let sayHello = await contract.sayHello.call();
+        const sayHello = await contract.sayHello({from: originalOwner});
         assert.equal(sayHello, PHRASE);
     });
 });
