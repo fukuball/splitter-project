@@ -9,7 +9,7 @@ contract('Splitter', function(accounts) {
     var contract;
 
     beforeEach(function() {
-      return Splitter.new().then(function(instance) {
+      return Splitter.new({from: alice}).then(function(instance) {
         contract = instance;
       });
     });

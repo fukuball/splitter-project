@@ -7,13 +7,13 @@ contract('Ownerable', function(accounts) {
     var contract;
 
     beforeEach(function() {
-      return Ownerable.new().then(function(instance) {
+      return Ownerable.new({from: originalOwner}).then(function(instance) {
         contract = instance;
       });
     });
 
     it('should have the owner address equal to the sender', async function() {
-        let contractOwner = await contract.owner.call();
+        let contractOwner = await contract.owner({from: originalOwner});
         assert.equal(contractOwner, originalOwner);
     });
 
