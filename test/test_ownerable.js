@@ -29,12 +29,12 @@ contract('Ownerable', function(accounts) {
     it('should have the ability to change owner and get the event', async function() {
         const newOwner = accounts[1];
         const txObj = await contract.changeOwner(newOwner, {from: originalOwner});
-        assert.equal(txObj.receipt.logs.length, 1);
-        assert.equal(txObj.logs.length, 1);
-        assert.equal(txObj.logs[0].event, 'LogChangeOwner');
-        assert.equal(txObj.logs[0].args.sender, originalOwner);
-        assert.equal(txObj.logs[0].args.newOwner, newOwner);
+        assert.strictEqual(txObj.receipt.logs.length, 1);
+        assert.strictEqual(txObj.logs.length, 1);
+        assert.strictEqual(txObj.logs[0].event, 'LogChangeOwner');
+        assert.strictEqual(txObj.logs[0].args.sender, originalOwner);
+        assert.strictEqual(txObj.logs[0].args.newOwner, newOwner);
         const contractOwner = await contract.owner({from: originalOwner});
-        assert.equal(contractOwner, newOwner);
+        assert.strictEqual(contractOwner, newOwner);
     });
 });

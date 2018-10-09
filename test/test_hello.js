@@ -14,6 +14,6 @@ contract('HelloWorld', function(accounts) {
 
     it('should say hello', async function() {
         const sayHello = await contract.sayHello({from: originalOwner});
-        assert.equal(sayHello, PHRASE);
+        assert.strictEqual(sayHello, PHRASE);
     });
 });
