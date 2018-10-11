@@ -4,16 +4,16 @@ contract('HelloWorld', function(accounts) {
 
     const PHRASE = "Hello World";
     const originalOwner = accounts[0];
-    var contract;
+    var helloWorldContract;
 
     beforeEach(function() {
       return HelloWorld.new({from: originalOwner}).then(function(instance) {
-        contract = instance;
+        helloWorldContract = instance;
       });
     });
 
     it('should say hello', async function() {
-        const sayHello = await contract.sayHello({from: originalOwner});
+        const sayHello = await helloWorldContract.sayHello({from: originalOwner});
         assert.strictEqual(sayHello, PHRASE);
     });
 });

@@ -6,22 +6,22 @@ contract('Splitter', function(accounts) {
     const alice = accounts[0];
     const bob = accounts[1];
     const carol = accounts[2];
-    var contract;
+    var splitterContract;
 
     beforeEach(function() {
       return Splitter.new({from: alice}).then(function(instance) {
-        contract = instance;
+        splitterContract = instance;
       });
     });
 
     it('should have the owner address equal to the sender', async function() {
-        const contractOwner = await contract.getOwner({from: alice});
+        const contractOwner = await splitterContract.getOwner({from: alice});
         assert.strictEqual(contractOwner, alice);
     });
 
     it('should not split if there is no recipients', async function() {
         await expectedExceptionPromise(function () {
-            return contract.split([], {
+            return splitterContract.split([], {
                 from: alice,
                 value: web3.toWei(1, "ether")
             });
@@ -30,7 +30,7 @@ contract('Splitter', function(accounts) {
 
     it('should not split if there is too many recipients', async function() {
         await expectedExceptionPromise(function () {
-            return contract.split([
+            return splitterContract.split([
                     accounts[1],
                     accounts[2],
                     accounts[3],
@@ -49,7 +49,7 @@ contract('Splitter', function(accounts) {
         const previousBobEther = await web3.eth.getBalance(bob);
         const previousCarolEther = await web3.eth.getBalance(carol);
 
-        const txObj1 = await contract.split(
+        const txObj1 = await splitterContract.split(
             [bob, carol],
             {
                 from: alice,
@@ -67,7 +67,7 @@ contract('Splitter', function(accounts) {
         assert.strictEqual(currentBobEther1.minus(previousBobEther).toString(10), "500000000000000000");
         assert.strictEqual(currentCarolEther1.minus(previousCarolEther).toString(10) , "500000000000000000");
 
-        const txObj2 = await contract.split(
+        const txObj2 = await splitterContract.split(
             [bob, carol],
             {
                 from: alice,
