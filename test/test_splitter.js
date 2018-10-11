@@ -15,7 +15,7 @@ contract('Splitter', function(accounts) {
     });
 
     it('should have the owner address equal to the sender', async function() {
-        const contractOwner = await contract.owner({from: alice});
+        const contractOwner = await contract.getOwner({from: alice});
         assert.strictEqual(contractOwner, alice);
     });
 
