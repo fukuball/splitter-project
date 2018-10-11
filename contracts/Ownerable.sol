@@ -20,7 +20,7 @@ contract Ownerable {
     }
 
     modifier preventSameOwner(address newOwner) {
-        require(msg.sender != newOwner, "pervent same owner");
+        require(msg.sender != newOwner, "prevent same owner");
         _;
     }
 
