@@ -1,4 +1,4 @@
-const catchRevert = require("./exceptions.js").catchRevert;
+const expectedExceptionPromise = require("./expected_exception_testRPC_and_geth.js");
 const Ownerable = artifacts.require('Ownerable');
 
 contract('Ownerable', function(accounts) {
@@ -18,12 +18,16 @@ contract('Ownerable', function(accounts) {
     });
 
     it('should not change owner with original owner address', async function() {
-        await catchRevert(contract.changeOwner(originalOwner, {from: originalOwner}));
+        await expectedExceptionPromise(function () {
+            return contract.changeOwner(originalOwner, {from: originalOwner});
+        }, 3000000);
     });
 
     it('should not change owner by not owner', async function() {
         const other = accounts[1];
-        await catchRevert(contract.changeOwner(other, {from: other}));
+        await expectedExceptionPromise(function () {
+            return contract.changeOwner(other, {from: other});
+        }, 3000000);
     });
 
     it('should have the ability to change owner and get the event', async function() {
