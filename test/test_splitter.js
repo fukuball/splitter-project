@@ -46,8 +46,8 @@ contract('Splitter', function(accounts) {
 
     it('should split by owner', async function() {
 
-        const previousBobEther = await web3.eth.getBalance(bob);
-        const previousCarolEther = await web3.eth.getBalance(carol);
+        const previousBobEther = web3.eth.getBalance(bob);
+        const previousCarolEther = web3.eth.getBalance(carol);
 
         const txObj1 = await splitterContract.split(
             [bob, carol],
@@ -61,8 +61,8 @@ contract('Splitter', function(accounts) {
         assert.strictEqual(txObj1.logs[0].args.sender, alice);
         assert.strictEqual(txObj1.logs[0].args.value.toString(10), web3.toWei(1, "ether"));
 
-        const currentBobEther1 = await web3.eth.getBalance(bob);
-        const currentCarolEther1 = await web3.eth.getBalance(carol);
+        const currentBobEther1 = web3.eth.getBalance(bob);
+        const currentCarolEther1 = web3.eth.getBalance(carol);
 
         assert.strictEqual(currentBobEther1.minus(previousBobEther).toString(10), "500000000000000000");
         assert.strictEqual(currentCarolEther1.minus(previousCarolEther).toString(10) , "500000000000000000");
@@ -79,8 +79,8 @@ contract('Splitter', function(accounts) {
         assert.strictEqual(txObj2.logs[0].args.sender, alice);
         assert.strictEqual(txObj2.logs[0].args.value.toString(10), "3");
 
-        const currentBobEther2 = await web3.eth.getBalance(bob);
-        const currentCarolEther2 = await web3.eth.getBalance(carol);
+        const currentBobEther2 = web3.eth.getBalance(bob);
+        const currentCarolEther2 = web3.eth.getBalance(carol);
 
         assert.strictEqual(currentBobEther2.minus(currentBobEther1).toString(10), "1");
         assert.strictEqual(currentCarolEther2.minus(currentCarolEther1).toString(10), "1");
