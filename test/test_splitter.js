@@ -1,6 +1,5 @@
-const catchRevert = require("./exceptions.js").catchRevert;
+const expectedExceptionPromise = require("./expected_exception_testRPC_and_geth.js");
 const Splitter = artifacts.require('Splitter');
-const BigNumber = web3.BigNumber;
 
 contract('Splitter', function(accounts) {
 
@@ -21,24 +20,28 @@ contract('Splitter', function(accounts) {
     });
 
     it('should not split if there is no recipients', async function() {
-        await catchRevert(contract.split([], {
-            from: alice,
-            value: web3.toWei(1, "ether")
-        }));
+        await expectedExceptionPromise(function () {
+            return contract.split([], {
+                from: alice,
+                value: web3.toWei(1, "ether")
+            });
+        }, 3000000);
     });
 
     it('should not split if there is too many recipients', async function() {
-        await catchRevert(contract.split([
-                accounts[1],
-                accounts[2],
-                accounts[3],
-                accounts[4],
-                accounts[5],
-                accounts[6],
-            ], {
-            from: alice,
-            value: web3.toWei(1, "ether")
-        }));
+        await expectedExceptionPromise(function () {
+            return contract.split([
+                    accounts[1],
+                    accounts[2],
+                    accounts[3],
+                    accounts[4],
+                    accounts[5],
+                    accounts[6],
+                ], {
+                from: alice,
+                value: web3.toWei(1, "ether")
+            });
+        }, 3000000);
     });
 
     it('should split by owner', async function() {
