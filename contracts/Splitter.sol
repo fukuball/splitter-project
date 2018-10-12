@@ -1,8 +1,11 @@
 pragma solidity ^0.4.23;
 
 import "./Ownerable.sol";
+import "./SafeMath.sol";
 
 contract Splitter is Ownerable {
+
+    using SafeMath for uint256;
 
     mapping(address => uint256) balances;
 
@@ -17,13 +20,13 @@ contract Splitter is Ownerable {
         require(secondRecipient != address(0), "prevent address 0");
         require(firstRecipient != secondRecipient, "prevent same recipients");
         require(msg.value > 0, "prevent 0 value to split");
-        uint256 remainder = msg.value % 2;
-        uint256 splitValue = (msg.value - remainder) / 2;
+        uint256 remainder = msg.value.mod(2);
+        uint256 splitValue = (msg.value.sub(remainder)).div(2);
 
-        balances[firstRecipient] += splitValue;
-        balances[secondRecipient] += splitValue;
+        balances[firstRecipient] = balances[firstRecipient].add(splitValue);
+        balances[secondRecipient] = balances[secondRecipient].add(splitValue);
         if (remainder > 0) {
-            balances[msg.sender] += remainder;
+            balances[msg.sender] = balances[msg.sender].add(remainder);
         }
 
         emit LogSplit(msg.sender, firstRecipient, secondRecipient, msg.value);
