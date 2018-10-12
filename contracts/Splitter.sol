@@ -9,18 +9,13 @@ contract Splitter is Ownerable {
     event LogSplit(address indexed sender, address indexed firstRecipient,  address indexed secondRecipient, uint256 value);
     event LogWithdraw(address indexed sender, uint toWithdraw);
 
-    modifier validRecipient(address firstRecipient, address secondRecipient) {
-        require(firstRecipient != address(0), "prevent address 0");
-        require(secondRecipient != address(0), "prevent address 0");
-        require(firstRecipient != secondRecipient, "prevent same recipients");
-
-        _;
-    }
-
     constructor() public {
     }
 
-    function split(address firstRecipient, address secondRecipient) validRecipient(firstRecipient, secondRecipient) payable public returns(bool isSuccess) {
+    function split(address firstRecipient, address secondRecipient) payable public returns(bool isSuccess) {
+        require(firstRecipient != address(0), "prevent address 0");
+        require(secondRecipient != address(0), "prevent address 0");
+        require(firstRecipient != secondRecipient, "prevent same recipients");
         require(msg.value > 0, "prevent 0 value to split");
         uint256 remainder = msg.value % 2;
         uint256 splitValue = (msg.value - remainder) / 2;
