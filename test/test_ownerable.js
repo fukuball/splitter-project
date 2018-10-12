@@ -4,7 +4,7 @@ const Ownerable = artifacts.require('Ownerable');
 contract('Ownerable', function(accounts) {
 
     const originalOwner = accounts[0];
-    var ownerableContract;
+    let ownerableContract;
 
     beforeEach(function() {
       return Ownerable.new({from: originalOwner}).then(function(instance) {

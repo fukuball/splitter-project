@@ -4,7 +4,7 @@ contract('HelloWorld', function(accounts) {
 
     const PHRASE = "Hello World";
     const originalOwner = accounts[0];
-    var helloWorldContract;
+    let helloWorldContract;
 
     beforeEach(function() {
       return HelloWorld.new({from: originalOwner}).then(function(instance) {

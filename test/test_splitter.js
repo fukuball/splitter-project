@@ -7,7 +7,7 @@ contract('Splitter', function(accounts) {
     const alice = accounts[0];
     const bob = accounts[1];
     const carol = accounts[2];
-    var splitterContract;
+    let splitterContract;
 
     beforeEach(function() {
       return Splitter.new({from: alice}).then(function(instance) {
