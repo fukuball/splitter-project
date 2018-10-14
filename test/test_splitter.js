@@ -32,50 +32,69 @@ contract('Splitter', function(accounts) {
         }, 3000000);
     });
 
-    const valueSet = [
-        {   sent:          "1024",
-            aliceBalance:     "0",
-            bobBalance:     "512",
-            carolBalance:   "512",
-            contractEther: "1024"
-        },
-        {   sent:             "3",
-            aliceBalance:     "1",
-            bobBalance:     "513",
-            carolBalance:   "513",
-            contractEther: "1027"
-        },
-    ];
+    describe("split...", function() {
 
-    it('should split half/half to two recipients', async function() {
-        valueSet.forEach(values => async function() {
-            const txObj = await splitterContract.split(
-                bob, carol,
-                {
-                    from: alice,
-                    value: values.sent
-                });
-            assert.strictEqual(txObj.receipt.logs.length, 1);
-            assert.strictEqual(txObj.logs.length, 1);
-            assert.strictEqual(txObj.logs[0].event, 'LogSplit');
-            assert.strictEqual(txObj.logs[0].args.sender, alice);
-            assert.strictEqual(txObj.logs[0].args.firstRecipient, bob);
-            assert.strictEqual(txObj.logs[0].args.secondRecipient, carol);
-            assert.strictEqual(txObj.logs[0].args.value.toString(10), values.sent);
-            const contractEther = await web3.eth.getBalancePromise(splitterContract.address);
-            assert.strictEqual(contractEther.toString(10), values.contractEther);
+        const splitValueSet = [
+            {   sent:          "1024",
+                aliceBalance:     "0",
+                bobBalance:     "512",
+                carolBalance:   "512",
+                contractEther: "1024"
+            },
+            {   sent:             "3",
+                aliceBalance:     "1",
+                bobBalance:       "1",
+                carolBalance:     "1",
+                contractEther:    "3"
+            },
+        ];
 
-            const currentBobBalance = await splitterContract.balanceOf(bob);
-            const currentCarolBalance = await splitterContract.balanceOf(carol);
+        splitValueSet.forEach((values, index) => {
+            it('should split half/half to two recipients on set ' + index, async function() {
+                const txObj = await splitterContract.split(
+                    bob, carol,
+                    {
+                        from: alice,
+                        value: values.sent
+                    });
+                assert.strictEqual(txObj.receipt.logs.length, 1);
+                assert.strictEqual(txObj.logs.length, 1);
+                assert.strictEqual(txObj.logs[0].event, 'LogSplit');
+                assert.strictEqual(txObj.logs[0].args.sender, alice);
+                assert.strictEqual(txObj.logs[0].args.firstRecipient, bob);
+                assert.strictEqual(txObj.logs[0].args.secondRecipient, carol);
+                assert.strictEqual(txObj.logs[0].args.value.toString(10), values.sent);
+                const contractEther = await web3.eth.getBalancePromise(splitterContract.address);
+                assert.strictEqual(contractEther.toString(10), values.contractEther);
 
-            assert.strictEqual(currentBobBalance.toString(10), values.bobBalance);
-            assert.strictEqual(currentCarolBalance.toString(10) , values.carolBalance);
+                const currentBobBalance = await splitterContract.balanceOf(bob);
+                const currentCarolBalance = await splitterContract.balanceOf(carol);
+
+                assert.strictEqual(currentBobBalance.toString(10), values.bobBalance);
+                assert.strictEqual(currentCarolBalance.toString(10) , values.carolBalance);
+            });
         });
     });
 
-    describe("withdraw", function() {
+    describe("withdraw...", function() {
+
+        const withdrawValueSet = [
+            {   sent:          "1024",
+                aliceBalance:     "0",
+                bobBalance:     "512",
+                carolBalance:   "512",
+                contractEther: "1024"
+            },
+            {   sent:             "3",
+                aliceBalance:     "1",
+                bobBalance:     "513",
+                carolBalance:   "513",
+                contractEther: "1027"
+            },
+        ];
+
         beforeEach("split first", function() {
-            valueSet.forEach(values => {
+            withdrawValueSet.forEach(values => {
                 return splitterContract.split(
                     bob, carol,
                     {
@@ -86,24 +105,24 @@ contract('Splitter', function(accounts) {
         });
 
         it('should withdraw balance', async function() {
-            const valueNum = valueSet.length;
+            const valueNum = withdrawValueSet.length;
             const previousCarolEther = await web3.eth.getBalancePromise(carol);
             const txObj = await splitterContract.withdraw({from: carol});
             assert.strictEqual(txObj.receipt.logs.length, 1);
             assert.strictEqual(txObj.logs.length, 1);
             assert.strictEqual(txObj.logs[0].event, 'LogWithdraw');
             assert.strictEqual(txObj.logs[0].args.sender, carol);
-            assert.strictEqual(txObj.logs[0].args.toWithdraw.toString(10), valueSet[valueNum-1].carolBalance);
+            assert.strictEqual(txObj.logs[0].args.toWithdraw.toString(10), withdrawValueSet[valueNum-1].carolBalance);
             const gasUsed = txObj.receipt.gasUsed;
             const tx = await web3.eth.getTransactionPromise(txObj.tx);
             const gasPrice = tx.gasPrice;
             const gasCost = gasPrice.mul(gasUsed);
 
-            const calculateCarolEther = previousCarolEther.minus(gasCost).plus(valueSet[valueNum-1].carolBalance).toString(10);
+            const calculateCarolEther = previousCarolEther.minus(gasCost).plus(withdrawValueSet[valueNum-1].carolBalance).toString(10);
             const currentCarolEther = await web3.eth.getBalancePromise(carol);
             assert.strictEqual(currentCarolEther.toString(10), calculateCarolEther);
 
-            const calculateContractEther = new BigNumber(valueSet[valueNum-1].contractEther).minus(new BigNumber(valueSet[valueNum-1].carolBalance));
+            const calculateContractEther = new BigNumber(withdrawValueSet[valueNum-1].contractEther).minus(new BigNumber(withdrawValueSet[valueNum-1].carolBalance));
             const currentContractEther = await web3.eth.getBalancePromise(splitterContract.address);
             assert.strictEqual(currentContractEther.toString(10), calculateContractEther.toString(10));
         });
