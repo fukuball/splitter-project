@@ -1,0 +1,28 @@
+{
+  "name": "splitter-project",
+  "version": "1.0.0",
+  "description": "Splitter project",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "bluebird": "^3.5.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fukuball/splitter-project.git"
+  },
+  "keywords": [
+    "Ethereum"
+  ],
+  "author": "Fukuball",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fukuball/splitter-project/issues"
+  },
+  "homepage": "https://github.com/fukuball/splitter-project#readme"
+}

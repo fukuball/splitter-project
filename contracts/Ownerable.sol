@@ -20,7 +20,7 @@ contract Ownerable {
     }
 
     modifier preventSameOwner(address newOwner) {
-        require(owner != newOwner, "prevent same owner");
+        require(_owner != newOwner, "prevent same owner");
         _;
     }
 

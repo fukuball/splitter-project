@@ -12,6 +12,7 @@ Create a smart contract named Splitter whereby:
 
 ```
 $ npm install -g truffle ganache-cli
+$ npm install
 ```
 
 ## Compile

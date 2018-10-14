@@ -21,7 +21,7 @@ contract Splitter is Ownerable {
         require(firstRecipient != secondRecipient, "prevent same recipients");
         require(msg.value > 0, "prevent 0 value to split");
         uint256 remainder = msg.value.mod(2);
-        uint256 splitValue = (msg.value.sub(remainder)).div(2);
+        uint256 splitValue = msg.value.sub(remainder).div(2);
 
         balances[firstRecipient] = balances[firstRecipient].add(splitValue);
         balances[secondRecipient] = balances[secondRecipient].add(splitValue);
