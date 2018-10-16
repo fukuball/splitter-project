@@ -105,24 +105,24 @@ contract('Splitter', function(accounts) {
         });
 
         it('should withdraw balance', async function() {
-            const valueNum = withdrawValueSet.length;
+            const lastIndex = withdrawValueSet.length - 1;
             const previousCarolEther = await web3.eth.getBalancePromise(carol);
             const txObj = await splitterContract.withdraw({from: carol});
             assert.strictEqual(txObj.receipt.logs.length, 1);
             assert.strictEqual(txObj.logs.length, 1);
             assert.strictEqual(txObj.logs[0].event, 'LogWithdraw');
             assert.strictEqual(txObj.logs[0].args.sender, carol);
-            assert.strictEqual(txObj.logs[0].args.toWithdraw.toString(10), withdrawValueSet[valueNum-1].carolBalance);
+            assert.strictEqual(txObj.logs[0].args.toWithdraw.toString(10), withdrawValueSet[lastIndex].carolBalance);
             const gasUsed = txObj.receipt.gasUsed;
             const tx = await web3.eth.getTransactionPromise(txObj.tx);
             const gasPrice = tx.gasPrice;
             const gasCost = gasPrice.mul(gasUsed);
 
-            const calculateCarolEther = previousCarolEther.minus(gasCost).plus(withdrawValueSet[valueNum-1].carolBalance).toString(10);
+            const calculateCarolEther = previousCarolEther.minus(gasCost).plus(withdrawValueSet[lastIndex].carolBalance).toString(10);
             const currentCarolEther = await web3.eth.getBalancePromise(carol);
             assert.strictEqual(currentCarolEther.toString(10), calculateCarolEther);
 
-            const calculateContractEther = new BigNumber(withdrawValueSet[valueNum-1].contractEther).minus(new BigNumber(withdrawValueSet[valueNum-1].carolBalance));
+            const calculateContractEther = new BigNumber(withdrawValueSet[lastIndex].contractEther).minus(new BigNumber(withdrawValueSet[lastIndex].carolBalance));
             const currentContractEther = await web3.eth.getBalancePromise(splitterContract.address);
             assert.strictEqual(currentContractEther.toString(10), calculateContractEther.toString(10));
         });
