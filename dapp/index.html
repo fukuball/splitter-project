@@ -11,6 +11,13 @@
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <style>
+    .mono {
+      font-family: monospace;
+    }
+    </style>
   </head>
 
   <body class="bg-light">
@@ -20,16 +27,68 @@
         Please Wait...
       </div>
       <div id="contract-address-input-block" class="row justify-content-center my-5 d-none">
-        <div class="col-8 col-lg-6">
-          <div class="h3">
+        <div class="col-12 col-sm-8">
+          <div class="h3 text-center">
             Please input your Splitter contract address
           </div>
-          <form class="form-inline mt-5">
+          <form class="form-inline mt-5 justify-content-center">
             <div class="form-group col-7 mb-2">
               <input type="text" class="form-control w-100" id="contract-address-input" placeholder="0x3ce79e4149795d2514eccfcee5eba1fe27c89eb1" required>
             </div>
             <button id="contract-address-input-btn" type="button" class="btn btn-primary mb-2">Confirm</button>
           </form>
+        </div>
+      </div>
+      <div id="contract-interface-block" class="row justify-content-center my-5 d-none">
+        <div class="col-12 col-sm-8">
+          <div class="text-center">
+            <div class="h3">
+              Splitter contract address
+            </div>
+            <div id="contract-interface-address" class="h4 mt-1 mono">
+            </div>
+            <div class="h4 mt-5">
+              Current contract ether:
+              <span id="contract-interface-eth">
+              </span>
+              ETH
+            </div>
+            <div class="mt-1">
+              <h4>Accounts</h4>
+              <div id="account-list-block">
+              </div>
+            </div>
+            <div class="mt-5">
+              <form class="justify-content-center">
+                <div class="form-group text-left">
+                  <label for="sender-address">Sender Address</label>
+                  <input type="text" class="form-control" id="sender-address" placeholder="Please input sender address..." required>
+                </div>
+                <div class="form-group text-left">
+                  <label for="send-amount">Send Amount</label>
+                  <div class="input-group">
+                    <input type="number" value="2046" min="1" max="1000000000000000000" class="form-control" id="send-amount" placeholder="Please input send amount..." required>
+                    <div class="input-group-append">
+                      <span class="input-group-text">Wei</span>
+                    </div>
+                    <div class="invalid-feedback">Send amount require > 0</div>
+                  </div>
+                </div>
+                <hr>
+                <div class="form-group text-left">
+                  <label for="recipient-address-1">First Recipient Address</label>
+                  <input type="text" class="form-control" id="recipient-address-1" placeholder="Please input first recipient address..." required>
+                </div>
+                <div class="form-group text-left">
+                  <label for="recipient-address-2">Second Recipient Address</label>
+                  <input type="text" class="form-control" id="recipient-address-2" placeholder="Please input second recipient address..." required>
+                </div>
+                <button id="split-submit-btn" type="button" class="btn btn-block btn-primary mb-2">
+                  Split
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
       <footer class="my-5 pt-5 text-muted text-center text-small">
@@ -47,13 +106,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
     <script src="/js/web3.js"></script>
+    <script src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
     window.SplitterDapp = {
       splitterContractFactory: null,
       splitterAddress: null,
       splitterInstance: null,
+      coinbase: '',
       start: function() {
-        var self = this;
+        let self = this;
         $.ajax({
           url: '/contracts/Splitter.json',
           type: 'GET',
@@ -68,38 +130,233 @@
             self.splitterContractFactory = web3.eth.contract(responseText.abi);
             $('#init-block').addClass('d-none');
             $('#contract-address-input-block').removeClass('d-none');
+            web3.eth.getCoinbase(function(err, coinbase) {
+              if (err) {
+                console.error(err);
+              } else {
+                console.log("Coinbase: " + coinbase);
+                self.coinbase = coinbase;
+              }
+            });
           },
           error: function(err) {
             console.log(err);
           }
         });
       },
-      getOwner: function() {
-        this.splitterInstance.owner.call(function(err, owner) {
-          if (err) {
-              console.error(err);
-          } else {
-              console.log(owner);
+      getOwner: async function() {
+        return await this.splitterInstance.getOwner({ from: this.coinbase });
+      },
+      getBalanceOf: async function(address) {
+        return await this.splitterInstance.balanceOf(address, { from: this.coinbase });
+      },
+      split: async function(firstRecipient, secondRecipient, sender, value) {
+        return await this.splitterInstance.split(firstRecipient, secondRecipient, { from: sender, value: value });
+      },
+      withdraw: async function(sender) {
+        return await this.splitterInstance.withdraw({ from: sender});
+      },
+      waitForTxToBeMined: async function(txHash) {
+        let txReceipt
+        while (! txReceipt) {
+          try {
+            txReceipt = await web3.eth.getTransactionReceipt(txHash);
+            console.log(txReceipt);
+            if (txReceipt != null) {
+              if (txReceipt.status == '0x1') {
+                // success
+                console.log('success');
+                return true;
+              } else {
+                console.log('fail');
+                return false
+              }
+            }
+          } catch (err) {
+            console.log(err);
+            return err;
           }
-      });
-      }
+        }
+      },
     }
 
     $(document).ready(function() {
       if (typeof web3 !== 'undefined') {
         // Don't lose an existing provider, like Mist or Metamask
         web3 = new Web3(web3.currentProvider);
+        Promise.promisifyAll(web3.eth, { suffix: "Promise" });
       } else {
         // set the provider you want from Web3.providers
         web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+        Promise.promisifyAll(web3.eth, { suffix: "Promise" });
       }
       SplitterDapp.start();
+
+      $(document.body).off('click', '.send-eth-btn');
+      $(document.body).on('click', '.send-eth-btn', function() {
+        let thisAddress = $(this).data('address');
+        web3.eth.sendTransactionPromise({from: SplitterDapp.coinbase, to: thisAddress, value: 100000000000000000}).then(function(txHash) {
+          console.log('send eth');
+          console.log(txHash);
+          if (txHash != null) {
+            SplitterDapp.waitForTxToBeMined(txHash).then(function (result) {
+              if (result) {
+                toastr.options.positionClass = 'toast-top-center';
+                toastr.options.closeButton = true;
+                toastr.success('Send success.');
+                web3.eth.getBalancePromise(SplitterDapp.splitterInstance.address).then(function(balance) {
+                  $('#contract-interface-eth').text(web3.fromWei(balance, 'ether'));
+                });
+              } else {
+                toastr.options.positionClass = 'toast-top-center';
+                toastr.options.closeButton = true;
+                toastr.error('Send failed.');
+              }
+            });
+          }
+        });
+      });
+
+      $(document.body).off('click', '.get-eth-balance-btn');
+      $(document.body).on('click', '.get-eth-balance-btn', function() {
+        let thisAddress = $(this).data('address');
+        web3.eth.getBalancePromise(thisAddress).then(function(balance) {
+          toastr.options.positionClass = 'toast-top-center';
+          toastr.options.closeButton = true;
+          toastr.success(thisAddress + ' has ' + web3.fromWei(balance, 'ether') + ' ETH in wallet.')
+        });
+      });
+
+      $(document.body).off('click', '.get-contract-balance-btn');
+      $(document.body).on('click', '.get-contract-balance-btn', function() {
+        let thisAddress = $(this).data('address');
+        SplitterDapp.getBalanceOf(thisAddress).then(function(balance) {
+          toastr.options.positionClass = 'toast-top-center';
+          toastr.options.closeButton = true;
+          toastr.success(thisAddress + ' has ' + web3.fromWei(balance, 'ether') + ' ETH in contract.');
+        });
+      });
+
+      $(document.body).off('click', '.withdraw-btn');
+      $(document.body).on('click', '.withdraw-btn', function() {
+        let thisAddress = $(this).data('address');
+        SplitterDapp.withdraw(thisAddress)
+        .then(function (txHash) {
+          console.log('withdraw');
+          console.log(txHash);
+          if (txHash != null) {
+            SplitterDapp.waitForTxToBeMined(txHash).then(function (result) {
+              if (result) {
+                toastr.options.positionClass = 'toast-top-center';
+                toastr.options.closeButton = true;
+                toastr.success('Withdraw success.');
+                web3.eth.getBalancePromise(SplitterDapp.splitterInstance.address).then(function(balance) {
+                  $('#contract-interface-eth').text(web3.fromWei(balance, 'ether'));
+                });
+              } else {
+                toastr.options.positionClass = 'toast-top-center';
+                toastr.options.closeButton = true;
+                toastr.error('Withdraw failed.');
+              }
+            });
+          }
+        })
+        .catch(function(error) {
+          // rejection
+          console.log('withdraw reject');
+          console.log(error);
+        });
+      });
+
+      $(document.body).off('click', '#split-submit-btn');
+      $(document.body).on('click', '#split-submit-btn', function() {
+        $('#sender-address').removeClass('is-invalid');
+        $('#send-amount').removeClass('is-invalid');
+        $('#recipient-address-1').removeClass('is-invalid');
+        $('#recipient-address-2').removeClass('is-invalid');
+        let senderAddress = $('#sender-address').val();
+        let sendAmount = $('#send-amount').val();
+        let recipientAddress1 = $('#recipient-address-1').val();
+        let recipientAddress2 = $('#recipient-address-2').val();
+        let hasError = false;
+        if (sendAmount <=0) {
+          $('#send-amount').addClass('is-invalid');
+          hasError = true;
+        }
+        if (! senderAddress) {
+          $('#sender-address').addClass('is-invalid');
+          hasError = true;
+        }
+        if (! recipientAddress1) {
+          $('#recipient-address-1').addClass('is-invalid');
+          hasError = true;
+        }
+        if (! recipientAddress2) {
+          $('#recipient-address-2').addClass('is-invalid');
+          hasError = true;
+        }
+        if (! hasError) {
+          SplitterDapp.split(recipientAddress1, recipientAddress2, senderAddress, sendAmount)
+          .then(function (txHash) {
+            console.log('split');
+            console.log(txHash);
+            if (txHash != null) {
+              SplitterDapp.waitForTxToBeMined(txHash).then(function (result) {
+                if (result) {
+                  toastr.options.positionClass = 'toast-top-center';
+                  toastr.options.closeButton = true;
+                  toastr.success('Split success.');
+                  web3.eth.getBalancePromise(SplitterDapp.splitterInstance.address).then(function(balance) {
+                    $('#contract-interface-eth').text(web3.fromWei(balance, 'ether'));
+                  });
+                } else {
+                  toastr.options.positionClass = 'toast-top-center';
+                  toastr.options.closeButton = true;
+                  toastr.error('Split failed.');
+                }
+              });
+            }
+          })
+          .catch(function(error) {
+            // rejection
+            console.log('split reject');
+            console.log(error);
+          });
+        }
+      });
 
       $(document.body).off('click', '#contract-address-input-btn');
       $(document.body).on('click', '#contract-address-input-btn', function() {
         SplitterDapp.splitterAddress = $('#contract-address-input').val();
         SplitterDapp.splitterInstance = SplitterDapp.splitterContractFactory.at(SplitterDapp.splitterAddress);
         console.log(SplitterDapp.splitterInstance);
+        $('#contract-address-input-block').addClass('d-none');
+        $('#contract-interface-address').text(SplitterDapp.splitterInstance.address);
+        web3.eth.getBalancePromise(SplitterDapp.splitterInstance.address).then(function(balance) {
+          $('#contract-interface-eth').text(web3.fromWei(balance, 'ether'));
+        });
+        web3.eth.getAccountsPromise().then(function(accounts) {
+          let accountListBlock = '';
+          accounts.forEach(function(account) {
+            accountListBlock +=
+              '<div class="mb-1">' +
+                '<div class="btn-group" role="group">' +
+                  '<button type="button" class="btn btn-secondary dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                    '<i class="fas fa-cog"></i>' +
+                  '</button>' +
+                  '<div class="dropdown-menu">' +
+                    '<a class="dropdown-item get-eth-balance-btn" href="#" data-address="' + account + '">Get ETH Balance</a>' +
+                    '<a class="dropdown-item get-contract-balance-btn" href="#" data-address="' + account + '">Get Contract Balance</a>' +
+                    '<a class="dropdown-item withdraw-btn" href="#" data-address="' + account + '">Withdraw</a>' +
+                    '<a class="dropdown-item send-eth-btn" href="#" data-address="' + account + '">Send 0.1 ETH</a>' +
+                  '</div>' +
+                '</div>' +
+                '&nbsp;&nbsp;<span class="mono">' + account + '</span>' +
+              '</div>';
+          });
+          $('#account-list-block').html(accountListBlock);
+        });
+        $('#contract-interface-block').removeClass('d-none');
       });
     });
     </script>
