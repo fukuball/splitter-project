@@ -144,39 +144,40 @@
           }
         });
       },
-      getOwner: async function() {
-        return await this.splitterInstance.getOwner({ from: this.coinbase });
+      getOwner: function() {
+        let self = this;
+        return new Promise(function(resolve, reject) {
+          this.splitterInstance.getOwner({ from: this.coinbase }, function(error, owner) {
+            resolve(owner);
+          });
+        });
       },
-      getBalanceOf: async function(address) {
-        return await this.splitterInstance.balanceOf(address, { from: this.coinbase });
+      getBalanceOf: function(address) {
+        let self = this;
+        return new Promise(function(resolve, reject) {
+          self.splitterInstance.balanceOf(address, { from: this.coinbase }, function(error, balance) {
+            resolve(balance);
+          });
+        });
       },
-      split: async function(firstRecipient, secondRecipient, sender, value) {
-        return await this.splitterInstance.split(firstRecipient, secondRecipient, { from: sender, value: value });
+      split: function(firstRecipient, secondRecipient, sender, value) {
+        let self = this;
+        return new Promise(function(resolve, reject) {
+          self.splitterInstance.split(firstRecipient, secondRecipient, { from: sender, value: value }, function(error, txHash) {
+            resolve(txHash);
+          });
+        });
       },
-      withdraw: async function(sender) {
-        return await this.splitterInstance.withdraw({ from: sender});
+      withdraw: function(sender) {
+        let self = this;
+        return new Promise(function(resolve, reject) {
+          self.splitterInstance.withdraw({ from: sender}, function(error, txHash) {
+            resolve(txHash);
+          });
+        });
       },
       waitForTxToBeMined: async function(txHash) {
-        let txReceipt
-        while (! txReceipt) {
-          try {
-            txReceipt = await web3.eth.getTransactionReceipt(txHash);
-            console.log(txReceipt);
-            if (txReceipt != null) {
-              if (txReceipt.status == '0x1') {
-                // success
-                console.log('success');
-                return true;
-              } else {
-                console.log('fail');
-                return false
-              }
-            }
-          } catch (err) {
-            console.log(err);
-            return err;
-          }
-        }
+        return await web3.eth.getTransactionReceiptPromise(txHash);
       },
     }
 
@@ -199,8 +200,11 @@
           console.log('send eth');
           console.log(txHash);
           if (txHash != null) {
-            SplitterDapp.waitForTxToBeMined(txHash).then(function (result) {
-              if (result) {
+            SplitterDapp.waitForTxToBeMined(txHash).then(function (txReceipt) {
+              console.log(txReceipt);
+              if (txReceipt.status == '0x1') {
+                // success
+                console.log('success');
                 toastr.options.positionClass = 'toast-top-center';
                 toastr.options.closeButton = true;
                 toastr.success('Send success.');
@@ -208,6 +212,7 @@
                   $('#contract-interface-eth').text(web3.fromWei(balance, 'ether'));
                 });
               } else {
+                console.log('fail');
                 toastr.options.positionClass = 'toast-top-center';
                 toastr.options.closeButton = true;
                 toastr.error('Send failed.');
@@ -245,8 +250,11 @@
           console.log('withdraw');
           console.log(txHash);
           if (txHash != null) {
-            SplitterDapp.waitForTxToBeMined(txHash).then(function (result) {
-              if (result) {
+            SplitterDapp.waitForTxToBeMined(txHash).then(function (txReceipt) {
+              console.log(txReceipt);
+              if (txReceipt.status == '0x1') {
+                // success
+                console.log('success');
                 toastr.options.positionClass = 'toast-top-center';
                 toastr.options.closeButton = true;
                 toastr.success('Withdraw success.');
@@ -254,6 +262,7 @@
                   $('#contract-interface-eth').text(web3.fromWei(balance, 'ether'));
                 });
               } else {
+                console.log('fail');
                 toastr.options.positionClass = 'toast-top-center';
                 toastr.options.closeButton = true;
                 toastr.error('Withdraw failed.');
@@ -301,8 +310,11 @@
             console.log('split');
             console.log(txHash);
             if (txHash != null) {
-              SplitterDapp.waitForTxToBeMined(txHash).then(function (result) {
-                if (result) {
+              SplitterDapp.waitForTxToBeMined(txHash).then(function (txReceipt) {
+                console.log(txReceipt);
+                if (txReceipt.status == '0x1') {
+                  // success
+                  console.log('success');
                   toastr.options.positionClass = 'toast-top-center';
                   toastr.options.closeButton = true;
                   toastr.success('Split success.');
@@ -310,6 +322,7 @@
                     $('#contract-interface-eth').text(web3.fromWei(balance, 'ether'));
                   });
                 } else {
+                  console.log('fail');
                   toastr.options.positionClass = 'toast-top-center';
                   toastr.options.closeButton = true;
                   toastr.error('Split failed.');
